@@ -1,5 +1,6 @@
 import javax.swing.*; 
 import java.awt.*;
+import java.awt.event.*;
 import java.util.*;
 
 public class Main {
@@ -8,7 +9,7 @@ public class Main {
     }
 }
 
-class MyFrame extends JFrame {
+class MyFrame extends JFrame implements ActionListener {
     JList fileNameJList;
     DefaultListModel<String> fileNameList;
 
@@ -16,10 +17,13 @@ class MyFrame extends JFrame {
         Container cp;
         cp = getContentPane();
 
+        fileNameList = new DefaultListModel<String>();
+        fileNameList.addElement("Test");
+
+        fileNameJList = new JList(fileNameList);
+        JScrollPane scrollPane = new JScrollPane(fileNameJList);
+        cp.add(scrollPane, BorderLayout.CENTER);
         setupMainFrame();
-
-
-        
     }
 
     void setupMainFrame() {
@@ -36,5 +40,9 @@ class MyFrame extends JFrame {
         setTitle("Project 1");
 
         setVisible(true);
+    }
+
+    public void actionPerformed(ActionEvent ae) {
+
     }
 }
