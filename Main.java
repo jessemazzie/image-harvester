@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.net.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -10,10 +11,18 @@ public class Main {
 }
 
 class MyFrame extends JFrame implements ActionListener {
+    URL url;
+    URLConnection urlConnection;
     JList fileNameJList;
     DefaultListModel<String> fileNameList;
+    JTextField urlField;
 
     MyFrame() {
+        try {
+            url = new URL("http://www.agile5technologies.com");
+        } catch(MalformedURLException mue) {
+            mue.printStackTrace();
+        }
         Container cp;
         cp = getContentPane();
 
@@ -22,6 +31,10 @@ class MyFrame extends JFrame implements ActionListener {
 
         fileNameJList = new JList(fileNameList);
         JScrollPane scrollPane = new JScrollPane(fileNameJList);
+
+        urlField = new JTextField();
+
+        cp.add(urlField, BorderLayout.NORTH);
         cp.add(scrollPane, BorderLayout.CENTER);
         setupMainFrame();
     }
