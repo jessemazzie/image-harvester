@@ -1,5 +1,7 @@
 import javax.swing.*;
 import javax.swing.text.html.parser.ParserDelegator;
+import javax.swing.text.MutableAttributeSet;
+import javax.swing.text.html.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -24,36 +26,27 @@ class MyFrame extends JFrame implements ActionListener {
     ParserCallbackTagHandler tagHandler;
 
     MyFrame() {
-        try {
-            domain = "http://tomcuchta.com/";
-            url = new URL(domain);
-            urlConnection = url.openConnection();
-            isr = new InputStreamReader(urlConnection.getInputStream());
-            tagHandler = new ParserCallbackTagHandler(domain);
-
-            new ParserDelegator().parse(isr, tagHandler, true);
-        } catch(MalformedURLException mue) {
-            mue.printStackTrace();
-        } catch(IOException ioe) {
-            ioe.printStackTrace();
-        }
-
+        JButton goButton = newJButton("Go", "GO_BTN");
+        JPanel inputPanel;
+        inputPanel = new JPanel();
+        fileNameList = new DefaultListModel<String>();
         
         Container cp;
         cp = getContentPane();
-
-        fileNameList = new DefaultListModel<String>();
-        fileNameList.addElement("Test");
-
+        getRootPane().setDefaultButton(goButton);
         fileNameJList = new JList(fileNameList);
         //fileNameJList.addMouseListener(this);
         //fileNameJList.
         JScrollPane scrollPane = new JScrollPane(fileNameJList);
 
         urlField = new JTextField();
-
-        cp.add(urlField, BorderLayout.SOUTH);
+        urlField.setColumns(25);
+        inputPanel.add(urlField);
+        inputPanel.add(goButton);
+        
         cp.add(scrollPane, BorderLayout.CENTER);
+        cp.add(inputPanel, BorderLayout.SOUTH);
+
         setupMainFrame();
     }
 
@@ -73,7 +66,57 @@ class MyFrame extends JFrame implements ActionListener {
         setVisible(true);
     }
 
-    public void actionPerformed(ActionEvent ae) {
+    void updateURL() {
+        System.out.println("Test");
+        try {
+            domain = urlField.getText();
+            System.out.println(domain);
+            url = new URL(domain);
+            urlConnection = url.openConnection();
+            isr = new InputStreamReader(urlConnection.getInputStream());
+            tagHandler = new ParserCallbackTagHandler(domain, fileNameList);
 
+            new ParserDelegator().parse(isr, tagHandler, true);
+        } catch(MalformedURLException mue) {
+            JOptionPane.showMessageDialog(this, "Error: URL is invalid.", "Invalid URL", JOptionPane.ERROR_MESSAGE);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    JButton newJButton(String label, String actionCommand) {
+        JButton tempButton = new JButton(label);
+        tempButton.setActionCommand(actionCommand);
+        tempButton.addActionListener(this);
+
+        return tempButton;
+    }
+
+    public void actionPerformed(ActionEvent ae) {
+        String ac = ae.getActionCommand();
+
+        if(ac.equals("GO_BTN")) {
+            updateURL();
+        }
+    }
+}
+
+class ParserCallbackTagHandler extends HTMLEditorKit.ParserCallback {
+    String domain;
+    Object attribute;
+    DefaultListModel<String> fileNameList;
+
+    ParserCallbackTagHandler(String domain, DefaultListModel<String> fileNameList) {
+        this.domain = domain;
+        this.fileNameList = fileNameList;
+    }
+
+    @Override
+    public void handleSimpleTag(HTML.Tag tag, MutableAttributeSet attSet, int pos) {
+        if(tag == HTML.Tag.IMG) {
+            attribute = attSet.getAttribute(HTML.Attribute.SRC);
+            if(attribute != null)
+                fileNameList.addElement(attribute.toString());
+        }
     }
 }
