@@ -5,6 +5,8 @@ import javax.swing.text.html.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.print.PrinterException;
+import java.awt.print.*;
 import java.io.*;
 import java.util.*;
 import java.net.*;
@@ -15,7 +17,7 @@ public class Main {
     }
 }
 
-class MyFrame extends JFrame implements ActionListener {
+class MyFrame extends JFrame implements ActionListener, MouseListener, Printable {
     URL url;
     String domain;
     URLConnection urlConnection;
@@ -26,16 +28,17 @@ class MyFrame extends JFrame implements ActionListener {
     ParserCallbackTagHandler tagHandler;
 
     MyFrame() {
+        Container cp;
+        cp = getContentPane();
+
         JButton goButton = newJButton("Go", "GO_BTN");
         JPanel inputPanel;
         inputPanel = new JPanel();
         fileNameList = new DefaultListModel<String>();
         
-        Container cp;
-        cp = getContentPane();
         getRootPane().setDefaultButton(goButton);
         fileNameJList = new JList(fileNameList);
-        //fileNameJList.addMouseListener(this);
+        fileNameJList.addMouseListener(this);
         //fileNameJList.
         JScrollPane scrollPane = new JScrollPane(fileNameJList);
 
@@ -46,7 +49,7 @@ class MyFrame extends JFrame implements ActionListener {
         
         cp.add(scrollPane, BorderLayout.CENTER);
         cp.add(inputPanel, BorderLayout.SOUTH);
-
+        printList(this);
         setupMainFrame();
     }
 
@@ -61,13 +64,15 @@ class MyFrame extends JFrame implements ActionListener {
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        setTitle("Project 1");
+        setTitle("Image Harvester");
 
         setVisible(true);
     }
 
     void updateURL() {
-        System.out.println("Test");
+        if(!fileNameList.isEmpty())
+            fileNameList.clear();
+
         try {
             domain = urlField.getText();
             System.out.println(domain);
@@ -98,6 +103,41 @@ class MyFrame extends JFrame implements ActionListener {
         if(ac.equals("GO_BTN")) {
             updateURL();
         }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent me) {
+        if(me.getClickCount() == 2) {
+            int index = fileNameJList.locationToIndex(me.getPoint());
+
+            System.out.println("Double clicked index: " + index);
+        }
+    }
+
+    //These exist as a requirement for implementing MouseListener, but I have no use for them.
+    public void mousePressed(MouseEvent me) {}
+    public void mouseReleased(MouseEvent me) {}
+    public void mouseEntered(MouseEvent me) {}
+    public void mouseExited(MouseEvent me) {}
+
+    void printList(Printable printable) {
+        PrinterJob pj;
+        PageFormat pf;
+
+        pj = PrinterJob.getPrinterJob();
+        pf = pj.pageDialog(pj.defaultPage());
+        pj.setPrintable(printable, pf);
+        try {
+            if(pj.printDialog())
+                pj.print();
+        } catch (PrinterException pe) {
+            pe.printStackTrace();
+        }
+    }
+
+    @Override
+    public int print(Graphics g, PageFormat pf, int pageIndex) {
+        return 1;
     }
 }
 
